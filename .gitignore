@@ -2,9 +2,13 @@
 __pycache__/
 .pytest_cache/
 *.py[cod]
+*.zip
 
 droplet_coalescence_3d/.venv/
 droplet_coalescence_3d/.pytest_cache/
+droplet_coalescence_3d/self_test_3d_surface.png
+droplet_coalescence_3d/self_test_experiment.png
+droplet_coalescence_3d/self_test_radius_sweep.csv
 
 droplet_coalescence/.venv/
 droplet_coalescence/.pytest_cache/
