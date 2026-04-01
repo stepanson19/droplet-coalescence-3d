@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+droplet_coalescence_3d/.venv/
+droplet_coalescence_3d/.pytest_cache/
+
+droplet_coalescence/.venv/
+droplet_coalescence/.pytest_cache/
