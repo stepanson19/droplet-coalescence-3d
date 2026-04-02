@@ -32,6 +32,8 @@ PARAMETER_LABELS = {
     "rho": "Плотность ρ, кг/м³",
 }
 
+MAINTENANCE_MODE = True
+
 
 def plotly_chart_streamlit_kwargs() -> dict[str, bool]:
     """Совместимые kwargs для st.plotly_chart в текущей версии Streamlit."""
@@ -548,6 +550,13 @@ def main() -> None:
         layout="wide",
         initial_sidebar_state="expanded",
     )
+
+    if MAINTENANCE_MODE:
+        st.title("Слипание пары капель воды в невесомости — 3D")
+        st.warning("Приложение временно недоступно.")
+        st.info("Доступ по ссылке временно отключен. После снятия режима техработ приложение заработает снова.")
+        st.stop()
+
     st.title("Слипание пары капель воды в невесомости — 3D")
     st.caption("Учебная 3D-модель: reduced-order физика, интерактивная визуализация и вычислительный эксперимент.")
 
