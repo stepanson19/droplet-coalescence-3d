@@ -32,7 +32,7 @@ PARAMETER_LABELS = {
     "rho": "Плотность ρ, кг/м³",
 }
 
-MAINTENANCE_MODE = True
+MAINTENANCE_MODE = False
 
 
 def plotly_chart_streamlit_kwargs() -> dict[str, bool]:
