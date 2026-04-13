@@ -14,10 +14,8 @@ from coalescence_core_3d import (
     SimulationParams,
     SweepVariable,
     frame_label,
-    infer_experiment_comment,
     make_3d_mesh,
     model_description_text,
-    result_summary_lines,
     simulate,
     sweep_parameter,
 )
@@ -164,45 +162,8 @@ def build_simulation_animation_figure(
     frame_duration_ms = int(np.clip(frame_duration_ms, 80, 3000))
 
     t_ms = result.t * 1e3
-    neck = result.neck_radius / result.params.radius_m
-    amplitude = result.mode_amplitude
 
-    fig = make_subplots(
-        rows=2,
-        cols=2,
-        specs=[[{"type": "scene", "rowspan": 2}, {"type": "xy"}], [None, {"type": "xy"}]],
-        column_widths=[0.58, 0.42],
-        vertical_spacing=0.16,
-        horizontal_spacing=0.08,
-        subplot_titles=("3D-симуляция", "Рост перешейка", "Релаксация моды l = 2"),
-    )
-
-    fig.add_trace(_surface_trace_from_mesh(initial_mesh), row=1, col=1)
-    fig.add_trace(go.Scatter(x=t_ms, y=neck, mode="lines", name="r_n/R"), row=1, col=2)
-    fig.add_trace(
-        go.Scatter(
-            x=[t_ms[initial_idx]],
-            y=[neck[initial_idx]],
-            mode="markers",
-            marker={"size": 10, "symbol": "diamond"},
-            name="Текущий момент",
-        ),
-        row=1,
-        col=2,
-    )
-    fig.add_trace(go.Scatter(x=t_ms, y=amplitude, mode="lines", name="A(t)", showlegend=False), row=2, col=2)
-    fig.add_trace(
-        go.Scatter(
-            x=[t_ms[initial_idx]],
-            y=[amplitude[initial_idx]],
-            mode="markers",
-            marker={"size": 10, "symbol": "diamond"},
-            name="Текущий момент 2",
-            showlegend=False,
-        ),
-        row=2,
-        col=2,
-    )
+    fig = go.Figure(data=[_surface_trace_from_mesh(initial_mesh)])
 
     frames: list[go.Frame] = []
     slider_steps: list[dict[str, object]] = []
@@ -212,25 +173,8 @@ def build_simulation_animation_figure(
         frames.append(
             go.Frame(
                 name=frame_name,
-                traces=[0, 2, 4],
-                data=[
-                    _surface_trace_from_mesh(mesh),
-                    go.Scatter(
-                        x=[t_ms[idx]],
-                        y=[neck[idx]],
-                        mode="markers",
-                        marker={"size": 10, "symbol": "diamond"},
-                        name="Текущий момент",
-                    ),
-                    go.Scatter(
-                        x=[t_ms[idx]],
-                        y=[amplitude[idx]],
-                        mode="markers",
-                        marker={"size": 10, "symbol": "diamond"},
-                        name="Текущий момент 2",
-                        showlegend=False,
-                    ),
-                ],
+                traces=[0],
+                data=[_surface_trace_from_mesh(mesh)],
                 layout=go.Layout(title={"text": frame_label(result, int(idx))}),
             )
         )
@@ -312,9 +256,6 @@ def build_simulation_animation_figure(
             }
         ],
     )
-    fig.update_yaxes(title_text="r_n/R", row=1, col=2)
-    fig.update_yaxes(title_text="A(t)", row=2, col=2)
-    fig.update_xaxes(title_text="t, мс", row=2, col=2)
     return fig
 
 
@@ -563,64 +504,41 @@ def main() -> None:
     sim_tab, exp_tab, model_tab = st.tabs(["Симуляция 3D", "Вычислительный эксперимент", "Модель"])
 
     with sim_tab:
-        st.subheader("Параметры симуляции")
-        params = _collect_simulation_params(st, "sim")
+        st.subheader("Управление скоростью процесса")
+        defaults = SimulationParams()
+        speed_factor = st.slider(
+            "Скорость слипания",
+            min_value=0.5,
+            max_value=3.0,
+            value=1.0,
+            step=0.1,
+            help="Больше значение — быстрее происходит слипание.",
+        )
+        params = SimulationParams(
+            radius_mm=defaults.radius_mm,
+            rho=defaults.rho,
+            mu_mpas=defaults.mu_mpas,
+            sigma_mnm=defaults.sigma_mnm,
+            initial_neck_ratio=defaults.initial_neck_ratio,
+            initial_mode_amplitude=defaults.initial_mode_amplitude,
+            total_time_ms=defaults.total_time_ms,
+            merge_ratio=defaults.merge_ratio,
+            bridge_time_scale=max(0.15, defaults.bridge_time_scale / speed_factor),
+            inertial_const=defaults.inertial_const,
+            ilv_const=defaults.ilv_const,
+            animation_frames=defaults.animation_frames,
+        )
         result = simulate(params)
-        anim_col1, anim_col2, anim_col3, anim_col4 = st.columns([1.0, 1.0, 1.05, 1.05])
-        with anim_col1:
-            animation_frame_count = st.slider(
-                "Число кадров анимации",
-                min_value=12,
-                max_value=min(120, len(result.t)),
-                value=min(72, len(result.t)),
-                step=2,
-            )
-        with anim_col2:
-            animation_frame_duration_ms = st.slider(
-                "Скорость кадров, мс",
-                min_value=80,
-                max_value=3000,
-                value=480,
-                step=40,
-                help="Чем больше значение, тем медленнее воспроизведение.",
-            )
-        with anim_col3:
-            coalescence_display_s = st.slider(
-                "Показ слипания, с",
-                min_value=0.5,
-                max_value=8.0,
-                value=2.0,
-                step=0.1,
-                help="Сколько экранного времени отдать стадии образования мостика.",
-            )
-        with anim_col4:
-            post_merge_display_s = st.slider(
-                "Показ после слипания, с",
-                min_value=1.0,
-                max_value=12.0,
-                value=6.0,
-                step=0.2,
-                help="Сколько экранного времени отдать ранней релаксации после объединения капель.",
-            )
-        animation_col, info_col = st.columns([1.55, 0.85])
-        with animation_col:
-            st.plotly_chart(
-                build_simulation_animation_figure(
-                    result,
-                    frame_count=animation_frame_count,
-                    frame_duration_ms=animation_frame_duration_ms,
-                    coalescence_display_s=coalescence_display_s,
-                    post_merge_display_s=post_merge_display_s,
-                ),
-                **plotly_chart_streamlit_kwargs(),
-            )
-        with info_col:
-            st.markdown("**Сводка расчета**")
-            st.code("\n".join(result_summary_lines(result)), language="text")
-            st.caption(
-                "Анимация воспроизводится на стороне браузера через Plotly. Масштаб 3D-сцены зафиксирован, "
-                "а скорость и визуальная длительность стадий регулируются слайдерами выше."
-            )
+        st.plotly_chart(
+            build_simulation_animation_figure(
+                result,
+                frame_count=72,
+                frame_duration_ms=480,
+                coalescence_display_s=2.0,
+                post_merge_display_s=6.0,
+            ),
+            **plotly_chart_streamlit_kwargs(),
+        )
 
     with exp_tab:
         st.subheader("Параметры вычислительного эксперимента")
@@ -641,9 +559,7 @@ def main() -> None:
             points = st.slider("Число точек", min_value=3, max_value=15, value=6)
 
         rows = sweep_parameter(base_params, variable, float(start), float(stop), int(points))
-        st.plotly_chart(build_experiment_figure(rows, variable), **plotly_chart_streamlit_kwargs())
         st.dataframe(rows, width="stretch")
-        st.info(infer_experiment_comment(variable, rows))
         st.download_button(
             "Скачать CSV",
             data=build_experiment_csv_bytes(rows),

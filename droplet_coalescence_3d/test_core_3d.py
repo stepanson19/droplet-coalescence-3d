@@ -67,7 +67,7 @@ def test_build_simulation_animation_figure_contains_frames_and_controls() -> Non
     result = simulate(SimulationParams())
     figure = build_simulation_animation_figure(result, frame_count=12, frame_duration_ms=180)
     assert len(figure.frames) >= 8
-    assert len(figure.data) == 5
+    assert len(figure.data) == 1
     assert figure.data[0].type == "surface"
     assert figure.layout.updatemenus
     labels = [button.label for button in figure.layout.updatemenus[0].buttons]
@@ -76,8 +76,6 @@ def test_build_simulation_animation_figure_contains_frames_and_controls() -> Non
     assert figure.layout.sliders
     play_button = figure.layout.updatemenus[0].buttons[0]
     assert play_button.args[1]["frame"]["duration"] == 180
-    assert figure.data[2].marker.color is None
-    assert figure.data[4].marker.color is None
 
 
 def test_animation_frame_indices_emphasize_early_coalescence_stage() -> None:
