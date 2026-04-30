@@ -31,6 +31,10 @@ PARAMETER_LABELS = {
 }
 
 MAINTENANCE_MODE = False
+DEFAULT_ANIMATION_FRAME_COUNT = 120
+DEFAULT_ANIMATION_FRAME_DURATION_MS = 320
+DEFAULT_COALESCENCE_DISPLAY_S = 5.0
+DEFAULT_POST_MERGE_DISPLAY_S = 6.0
 
 
 def plotly_chart_streamlit_kwargs() -> dict[str, bool]:
@@ -69,7 +73,7 @@ def stage_display_frame_budgets(
     coalescence_display_s = float(np.clip(coalescence_display_s, 0.4, 12.0))
     post_merge_display_s = float(np.clip(post_merge_display_s, 0.8, 20.0))
 
-    early_frames = max(6, int(round(coalescence_display_s * 1000.0 / frame_duration_ms)))
+    early_frames = max(14, int(round(coalescence_display_s * 1000.0 / frame_duration_ms)))
     post_merge_frames = max(10, int(round(post_merge_display_s * 1000.0 / frame_duration_ms)))
     return early_frames, post_merge_frames
 
@@ -144,10 +148,10 @@ def animation_scene_ranges_mm(result) -> tuple[list[float], list[float], list[fl
 
 def build_simulation_animation_figure(
     result,
-    frame_count: int = 72,
-    frame_duration_ms: int = 480,
-    coalescence_display_s: float = 2.0,
-    post_merge_display_s: float = 6.0,
+    frame_count: int = DEFAULT_ANIMATION_FRAME_COUNT,
+    frame_duration_ms: int = DEFAULT_ANIMATION_FRAME_DURATION_MS,
+    coalescence_display_s: float = DEFAULT_COALESCENCE_DISPLAY_S,
+    post_merge_display_s: float = DEFAULT_POST_MERGE_DISPLAY_S,
 ) -> go.Figure:
     indices = _animation_frame_indices(
         result,
@@ -532,10 +536,10 @@ def main() -> None:
         st.plotly_chart(
             build_simulation_animation_figure(
                 result,
-                frame_count=72,
-                frame_duration_ms=480,
-                coalescence_display_s=2.0,
-                post_merge_display_s=6.0,
+                frame_count=DEFAULT_ANIMATION_FRAME_COUNT,
+                frame_duration_ms=DEFAULT_ANIMATION_FRAME_DURATION_MS,
+                coalescence_display_s=DEFAULT_COALESCENCE_DISPLAY_S,
+                post_merge_display_s=DEFAULT_POST_MERGE_DISPLAY_S,
             ),
             **plotly_chart_streamlit_kwargs(),
         )

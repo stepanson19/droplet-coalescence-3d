@@ -84,7 +84,16 @@ def test_animation_frame_indices_emphasize_early_coalescence_stage() -> None:
     focus_time = result.merge_time + result.transition_time
     assert indices[0] == 0
     assert indices[-1] == len(result.t) - 1
-    assert np.sum(result.t[indices] <= focus_time) >= 6
+    assert np.sum(result.t[indices] <= focus_time) >= 14
+
+
+def test_default_animation_has_dense_coalescence_frames() -> None:
+    result = simulate(SimulationParams())
+    figure = build_simulation_animation_figure(result)
+    focus_time = result.merge_time + result.transition_time
+    frame_indices = _animation_frame_indices(result, frame_count=120, frame_duration_ms=320, coalescence_display_s=5.0)
+    assert len(figure.frames) >= 110
+    assert np.sum(result.t[frame_indices] <= focus_time) >= 14
 
 
 def test_animation_frame_indices_emphasize_early_post_merge_window() -> None:
@@ -97,7 +106,7 @@ def test_animation_frame_indices_emphasize_early_post_merge_window() -> None:
 
 def test_stage_display_frame_budgets_grow_with_requested_screen_time() -> None:
     early_small, post_small = stage_display_frame_budgets(400, 1.0, 2.0)
-    early_big, post_big = stage_display_frame_budgets(400, 3.0, 6.0)
+    early_big, post_big = stage_display_frame_budgets(400, 7.0, 6.0)
     assert early_big > early_small
     assert post_big > post_small
 
