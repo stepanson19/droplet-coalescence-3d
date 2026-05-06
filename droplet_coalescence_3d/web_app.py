@@ -91,7 +91,7 @@ def _animation_frame_indices(
     coalescence_display_s: float = 2.0,
     post_merge_display_s: float = 6.0,
 ) -> np.ndarray:
-    frame_count = int(np.clip(frame_count, 12, min(120, len(result.t))))
+    frame_count = int(np.clip(frame_count, 12, min(180, len(result.t))))
     total_time = float(result.t[-1])
 
     if total_time <= 0.0 or not np.isfinite(total_time):
@@ -101,31 +101,16 @@ def _animation_frame_indices(
     focus_start = result.merge_time + result.transition_time
     if not np.isfinite(focus_start) or focus_start <= 0.0:
         focus_start = 0.10 * total_time
-    focus_start = float(np.clip(focus_start, total_time / 160.0, 0.18 * total_time))
+    focus_start = float(np.clip(focus_start, total_time / 200.0, 0.25 * total_time))
 
-    post_merge_window = 0.30 * total_time
+    stage_ratio = post_merge_display_s / max(coalescence_display_s, 1e-12)
+    post_merge_window = focus_start * max(1.0, stage_ratio)
     if np.isfinite(result.oscillation_period) and result.oscillation_period > 0.0:
-        post_merge_window = max(post_merge_window, 5.0 * float(result.oscillation_period))
+        post_merge_window = max(post_merge_window, 3.0 * float(result.oscillation_period))
     if np.isfinite(result.damping_time) and result.damping_time > 0.0:
-        post_merge_window = min(max(post_merge_window, 0.35 * float(result.damping_time)), 0.65 * total_time)
-    focus_end = float(np.clip(focus_start + post_merge_window, focus_start + 0.12 * total_time, total_time))
-
-    early_budget, middle_budget = stage_display_frame_budgets(
-        frame_duration_ms,
-        coalescence_display_s,
-        post_merge_display_s,
-    )
-    effective_frame_count = max(frame_count, early_budget + middle_budget + 4)
-    effective_frame_count = int(np.clip(effective_frame_count, 12, min(180, len(result.t))))
-
-    early_frames = min(max(early_budget, 6), effective_frame_count - 12)
-    middle_frames = min(max(middle_budget, 10), effective_frame_count - early_frames - 4)
-    late_frames = max(effective_frame_count - early_frames - middle_frames + 2, 4)
-
-    early_times = np.linspace(0.0, focus_start, early_frames, endpoint=True)
-    middle_times = np.linspace(focus_start, focus_end, middle_frames, endpoint=True)
-    late_times = np.linspace(focus_end, total_time, late_frames, endpoint=True)
-    sample_times = np.unique(np.concatenate([early_times, middle_times, late_times]))
+        post_merge_window = min(post_merge_window, 0.35 * float(result.damping_time))
+    display_end = float(np.clip(focus_start + post_merge_window, 2.0 * focus_start, total_time))
+    sample_times = np.linspace(0.0, display_end, frame_count, endpoint=True)
 
     right_indices = np.searchsorted(result.t, sample_times, side="left")
     right_indices = np.clip(right_indices, 0, len(result.t) - 1)
@@ -136,8 +121,6 @@ def _animation_frame_indices(
 
     if indices[0] != 0:
         indices = np.insert(indices, 0, 0)
-    if indices[-1] != len(result.t) - 1:
-        indices = np.append(indices, len(result.t) - 1)
     return indices
 
 

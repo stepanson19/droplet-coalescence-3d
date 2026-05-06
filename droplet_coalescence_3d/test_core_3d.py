@@ -81,10 +81,9 @@ def test_build_simulation_animation_figure_contains_frames_and_controls() -> Non
 
 def test_animation_frame_indices_emphasize_early_coalescence_stage() -> None:
     result = simulate(SimulationParams())
-    indices = _animation_frame_indices(result, frame_count=24)
+    indices = _animation_frame_indices(result, frame_count=120)
     focus_time = result.merge_time + result.transition_time
     assert indices[0] == 0
-    assert indices[-1] == len(result.t) - 1
     assert np.sum(result.t[indices] <= focus_time) >= 14
 
 
@@ -95,6 +94,15 @@ def test_default_animation_has_dense_coalescence_frames() -> None:
     frame_indices = _animation_frame_indices(result, frame_count=120, frame_duration_ms=180, coalescence_display_s=2.5)
     assert len(figure.frames) >= 110
     assert np.sum(result.t[frame_indices] <= focus_time) >= 14
+
+
+def test_animation_frame_times_are_uniform_without_final_jump() -> None:
+    result = simulate(SimulationParams())
+    indices = _animation_frame_indices(result, frame_count=80)
+    frame_times = result.t[indices]
+    time_steps = np.diff(frame_times)
+    assert np.max(time_steps) / np.min(time_steps) < 1.25
+    assert frame_times[-1] < 0.5 * result.t[-1]
 
 
 def test_video_speed_control_shortens_frame_duration() -> None:
