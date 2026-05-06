@@ -32,7 +32,7 @@ PARAMETER_LABELS = {
 
 MAINTENANCE_MODE = False
 DEFAULT_ANIMATION_FRAME_COUNT = 120
-DEFAULT_ANIMATION_FRAME_DURATION_MS = 320
+DEFAULT_ANIMATION_FRAME_DURATION_MS = 180
 DEFAULT_COALESCENCE_DISPLAY_S = 5.0
 DEFAULT_POST_MERGE_DISPLAY_S = 6.0
 
@@ -40,6 +40,11 @@ DEFAULT_POST_MERGE_DISPLAY_S = 6.0
 def plotly_chart_streamlit_kwargs() -> dict[str, bool]:
     """Совместимые kwargs для st.plotly_chart в текущей версии Streamlit."""
     return {"use_container_width": True}
+
+
+def video_speed_to_frame_duration_ms(video_speed: float) -> int:
+    video_speed = float(np.clip(video_speed, 0.5, 4.0))
+    return int(np.clip(round(DEFAULT_ANIMATION_FRAME_DURATION_MS / video_speed), 80, 1000))
 
 
 def _surface_trace_from_mesh(mesh) -> go.Surface:
@@ -510,14 +515,25 @@ def main() -> None:
     with sim_tab:
         st.subheader("Управление скоростью процесса")
         defaults = SimulationParams()
-        speed_factor = st.slider(
-            "Скорость слипания",
-            min_value=0.5,
-            max_value=3.0,
-            value=1.0,
-            step=0.1,
-            help="Больше значение — быстрее происходит слипание.",
-        )
+        speed_col, video_col = st.columns(2)
+        with speed_col:
+            speed_factor = st.slider(
+                "Скорость слипания",
+                min_value=0.5,
+                max_value=3.0,
+                value=1.0,
+                step=0.1,
+                help="Больше значение — быстрее происходит слипание.",
+            )
+        with video_col:
+            video_speed = st.slider(
+                "Скорость видео",
+                min_value=0.5,
+                max_value=4.0,
+                value=1.0,
+                step=0.1,
+                help="Больше значение — быстрее проигрываются кадры анимации.",
+            )
         params = SimulationParams(
             radius_mm=defaults.radius_mm,
             rho=defaults.rho,
@@ -537,7 +553,7 @@ def main() -> None:
             build_simulation_animation_figure(
                 result,
                 frame_count=DEFAULT_ANIMATION_FRAME_COUNT,
-                frame_duration_ms=DEFAULT_ANIMATION_FRAME_DURATION_MS,
+                frame_duration_ms=video_speed_to_frame_duration_ms(video_speed),
                 coalescence_display_s=DEFAULT_COALESCENCE_DISPLAY_S,
                 post_merge_display_s=DEFAULT_POST_MERGE_DISPLAY_S,
             ),

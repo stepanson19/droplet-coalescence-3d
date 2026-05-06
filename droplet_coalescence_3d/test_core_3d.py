@@ -25,6 +25,7 @@ from web_app import (  # type: ignore  # noqa: E402
     plotly_chart_streamlit_kwargs,
     stage_display_frame_budgets,
     _surface_trace_from_mesh,
+    video_speed_to_frame_duration_ms,
 )
 
 
@@ -91,9 +92,17 @@ def test_default_animation_has_dense_coalescence_frames() -> None:
     result = simulate(SimulationParams())
     figure = build_simulation_animation_figure(result)
     focus_time = result.merge_time + result.transition_time
-    frame_indices = _animation_frame_indices(result, frame_count=120, frame_duration_ms=320, coalescence_display_s=5.0)
+    frame_indices = _animation_frame_indices(result, frame_count=120, frame_duration_ms=180, coalescence_display_s=5.0)
     assert len(figure.frames) >= 110
     assert np.sum(result.t[frame_indices] <= focus_time) >= 14
+
+
+def test_video_speed_control_shortens_frame_duration() -> None:
+    normal_duration = video_speed_to_frame_duration_ms(1.0)
+    fast_duration = video_speed_to_frame_duration_ms(2.0)
+    fastest_duration = video_speed_to_frame_duration_ms(10.0)
+    assert fast_duration < normal_duration
+    assert fastest_duration >= 80
 
 
 def test_animation_frame_indices_emphasize_early_post_merge_window() -> None:
