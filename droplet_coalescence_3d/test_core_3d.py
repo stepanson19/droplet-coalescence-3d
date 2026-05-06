@@ -92,7 +92,7 @@ def test_default_animation_has_dense_coalescence_frames() -> None:
     result = simulate(SimulationParams())
     figure = build_simulation_animation_figure(result)
     focus_time = result.merge_time + result.transition_time
-    frame_indices = _animation_frame_indices(result, frame_count=120, frame_duration_ms=180, coalescence_display_s=5.0)
+    frame_indices = _animation_frame_indices(result, frame_count=120, frame_duration_ms=180, coalescence_display_s=2.5)
     assert len(figure.frames) >= 110
     assert np.sum(result.t[frame_indices] <= focus_time) >= 14
 

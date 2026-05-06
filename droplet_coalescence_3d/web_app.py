@@ -33,8 +33,9 @@ PARAMETER_LABELS = {
 MAINTENANCE_MODE = False
 DEFAULT_ANIMATION_FRAME_COUNT = 120
 DEFAULT_ANIMATION_FRAME_DURATION_MS = 180
-DEFAULT_COALESCENCE_DISPLAY_S = 5.0
+DEFAULT_COALESCENCE_DISPLAY_S = 2.5
 DEFAULT_POST_MERGE_DISPLAY_S = 6.0
+DEFAULT_COALESCENCE_SPEED = 1.8
 
 
 def plotly_chart_streamlit_kwargs() -> dict[str, bool]:
@@ -521,7 +522,7 @@ def main() -> None:
                 "Скорость слипания",
                 min_value=0.5,
                 max_value=3.0,
-                value=1.0,
+                value=DEFAULT_COALESCENCE_SPEED,
                 step=0.1,
                 help="Больше значение — быстрее происходит слипание.",
             )
