@@ -106,7 +106,7 @@ def _animation_frame_indices(
     stage_ratio = post_merge_display_s / max(coalescence_display_s, 1e-12)
     post_merge_window = focus_start * max(1.0, stage_ratio)
     if np.isfinite(result.oscillation_period) and result.oscillation_period > 0.0:
-        post_merge_window = max(post_merge_window, 3.0 * float(result.oscillation_period))
+        post_merge_window = max(post_merge_window, 5.0 * float(result.oscillation_period))
     if np.isfinite(result.damping_time) and result.damping_time > 0.0:
         post_merge_window = min(post_merge_window, 0.35 * float(result.damping_time))
     display_end = float(np.clip(focus_start + post_merge_window, 2.0 * focus_start, total_time))
