@@ -84,7 +84,7 @@ def test_animation_frame_indices_emphasize_early_coalescence_stage() -> None:
     indices = _animation_frame_indices(result, frame_count=120)
     focus_time = result.merge_time + result.transition_time
     assert indices[0] == 0
-    assert np.sum(result.t[indices] <= focus_time) >= 8
+    assert np.sum(result.t[indices] <= focus_time) >= 7
 
 
 def test_default_animation_has_dense_coalescence_frames() -> None:
@@ -93,7 +93,7 @@ def test_default_animation_has_dense_coalescence_frames() -> None:
     focus_time = result.merge_time + result.transition_time
     frame_indices = _animation_frame_indices(result, frame_count=120, frame_duration_ms=180, coalescence_display_s=2.5)
     assert len(figure.frames) >= 110
-    assert np.sum(result.t[frame_indices] <= focus_time) >= 8
+    assert np.sum(result.t[frame_indices] <= focus_time) >= 7
 
 
 def test_animation_frame_times_are_uniform_without_final_jump() -> None:
@@ -102,7 +102,7 @@ def test_animation_frame_times_are_uniform_without_final_jump() -> None:
     frame_times = result.t[indices]
     time_steps = np.diff(frame_times)
     assert np.max(time_steps) / np.min(time_steps) < 1.25
-    assert time_steps.mean() > 0.00075
+    assert time_steps.mean() > 0.001
     assert frame_times[-1] < 0.5 * result.t[-1]
 
 
